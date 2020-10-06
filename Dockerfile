@@ -1,5 +1,5 @@
 
-FROM ubi8/openjdk-8
+FROM registry.redhat.io/ubi8/openjdk-8:latest
 
 ARG NIFI_VERSION=1.12.0
 ARG BASE_URL=https://archive.apache.org/dist
