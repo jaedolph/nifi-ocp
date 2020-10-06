@@ -16,15 +16,17 @@ ENV NIFI_LOG_DIR=${NIFI_HOME}/logs
 
 USER root
 
+# Install deps
+RUN dnf install -y  https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
+    && dnf install -y hostname jq xmlstarlet procps \
+    && dnf update -y
+
+USER 1001
+
+RUN mkdir -p ${NIFI_BASE_DIR} \
+    && chgrp -R 0 ${NIFI_BASE_DIR}
 ADD sh/ ${NIFI_BASE_DIR}/scripts/
 RUN chmod -R +x ${NIFI_BASE_DIR}/scripts/*.sh
-
-# Setup NiFi user and create necessary directories
-RUN mkdir -p ${NIFI_BASE_DIR} \
-    && chgrp -R 0 ${NIFI_BASE_DIR} \
-    && dnf install -y  https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
-    && dnf install -y jq xmlstarlet procps \
-    && dnf update -y
 
 # Download, validate, and expand Apache NiFi Toolkit binary.
 RUN curl -fSL ${MIRROR_BASE_URL}/${NIFI_TOOLKIT_BINARY_PATH} -o ${NIFI_BASE_DIR}/nifi-toolkit-${NIFI_VERSION}-bin.zip \
@@ -60,12 +62,14 @@ VOLUME ${NIFI_LOG_DIR} \
 # Clear nifi-env.sh in favour of configuring all environment variables in the Dockerfile
 RUN echo "#!/bin/sh\n" > $NIFI_HOME/bin/nifi-env.sh
 
+# Fix perms for Openshift
+RUN chgrp -R 0 ${NIFI_BASE_DIR} \
+    && chmod -R g+rwX ${NIFI_BASE_DIR}
+
 # Web HTTP(s) & Socket Site-to-Site Ports
 EXPOSE 8080 8443 10000 8000
 
 WORKDIR ${NIFI_HOME}
-
-USER 1001
 
 # Apply configuration and start NiFi
 #
