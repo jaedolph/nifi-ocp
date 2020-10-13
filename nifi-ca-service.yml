@@ -1,0 +1,15 @@
+# Create service for the nifi-ca replica set
+apiVersion: v1
+kind: Service
+metadata:
+  name: nifi-ca-cs
+  namespace: nifi
+  labels:
+    app: nifi-ca
+spec:
+  ports:
+    - port: 8443
+      name: ca-client-port
+      targetPort: 8443
+  selector:
+    app: nifi-ca

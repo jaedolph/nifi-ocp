@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nifi-cluster
+  namespace: nifi
+spec:
+  serviceName: nifi-cluster
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nifi-cluster
+  template:
+    metadata:
+      labels:
+        app: nifi-cluster
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: nifi
+          image: 'image-registry.openshift-image-registry.svc:5000/nifi/nifi-ocp@sha256:86cdddd3ddecae50c4bfe7cd87b26ef083641835a5f321ef4c51cfb051de6978'
+          ports:
+            - containerPort: 8443
+              name: web
+          env:
+            - name: AUTH
+              value: tls
+            - name: KEYSTORE_PATH
+              value: /opt/certs/keystore.jks
+            - name: KEYSTORE_PASSWORD
+              value: password
+            - name: KEYSTORE_TYPE
+              value: JKS
+            - name: TRUSTSTORE_PATH
+              value: /opt/certs/truststore.jks
+            - name: TRUSTSTORE_PASSWORD
+              value: password
+            - name: TRUSTSTORE_TYPE
+              value: JKS
+            - INITIAL_ADMIN_IDENTITY:
+              value: 'CN=jadolph,OU=NiFi'
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: certs-volume
+              mountPath: /opt/certs
+      dnsPolicy: ClusterFirst
+      volumes:
+        - name: certs-volume
+          configMap:
+            name: $(POD_NAME)
+            items:
+              - key: rabbitmq.conf
+                path: rabbitmq.conf
+              - key: enabled_plugins
+                path: enabled_plugins
+            defaultMode: 420
+
