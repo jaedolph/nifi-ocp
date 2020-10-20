@@ -21,11 +21,9 @@ RUN dnf install -y  https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.
     && dnf install -y hostname jq xmlstarlet procps \
     && dnf update -y
 
-USER 1001
-
 RUN mkdir -p ${NIFI_BASE_DIR} \
     && chgrp -R 0 ${NIFI_BASE_DIR}
-ADD sh/ ${NIFI_BASE_DIR}/scripts/
+ADD sh/ entrypoint.sh ${NIFI_BASE_DIR}/scripts/
 RUN chmod -R +x ${NIFI_BASE_DIR}/scripts/*.sh
 
 # Download, validate, and expand Apache NiFi Toolkit binary.
@@ -63,6 +61,8 @@ EXPOSE 8080 8443 10000 8000
 
 WORKDIR ${NIFI_HOME}
 
+USER 1001
+
 # Apply configuration and start NiFi
 #
 # We need to use the exec form to avoid running our command in a subshell and omitting signals,
@@ -72,4 +72,4 @@ WORKDIR ${NIFI_HOME}
 # Also we need to use relative path, because the exec form does not invoke a command shell,
 # thus normal shell processing does not happen:
 # https://docs.docker.com/engine/reference/builder/#exec-form-entrypoint-example
-ENTRYPOINT ["../scripts/start.sh"]
+ENTRYPOINT ["../scripts/entrypoint.sh"]
