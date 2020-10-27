@@ -1,7 +1,7 @@
 
 FROM registry.redhat.io/ubi8/openjdk-8:latest
 
-ARG NIFI_VERSION=1.12.0
+ARG NIFI_VERSION=1.12.1
 ARG BASE_URL=https://archive.apache.org/dist
 ARG MIRROR_BASE_URL=${MIRROR_BASE_URL:-${BASE_URL}}
 ARG NIFI_BINARY_PATH=${NIFI_BINARY_PATH:-/nifi/${NIFI_VERSION}/nifi-${NIFI_VERSION}-bin.zip}
